@@ -43,16 +43,16 @@ sp= spotipy.Spotify(auth=token)
 
 def get_ids():
     recently_played = sp.current_user_recently_played(limit=50)
-    recently_played_data=json.loads(json.dumps(recently_played))
-    with open('recently_played.json', 'a') as outfile:
-        json.dump(recently_played_data, outfile)
+    
+    with open('recently_played.json', 'w') as outfile:
+        json.dump(recently_played, outfile)
 
     before_dates=[]
-    return ret_ids(recently_played_data)
-    
-def ret_ids(recently_played_data):
+    return ret_ids(recently_played)
+
+def ret_ids(recently_played):
     track_ids=[]
-    for track in recently_played_data['items']:
+    for track in recently_played['items']:
         # print(track["track"]["id"])
         track_ids.append(track["track"]["id"])
         # before_dates.append(track["track"]["cursors"]["before"])
@@ -92,8 +92,13 @@ def test():
 def audio_analysis():
     with open("recently_played.json", "r") as f:
         data=json.load(f)
-        aa=sp.audio_analysis(ret_ids(data))
-        print(aa)
+        ids=ret_ids(data)
+        print(ids)
+        analysis_list=[]
+        for id in ids:
+            aa=sp.audio_analysis(id)
+            analysis_list.append(aa)
+        print(analysis_list)
 
 
 # %%
@@ -104,3 +109,5 @@ def main():
     audio_analysis()
 main()
 # test()
+
+# %%
