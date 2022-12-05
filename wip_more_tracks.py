@@ -22,7 +22,7 @@ import json
 import matplotlib.pyplot as plt
 
 # %%
-data= json.load(open('ids.json'))
+data= json.load(open('metadata/ids.json'))
 username = data["username"]
 client_id = data["client-id"]
 client_secret = data["client-secret"]
@@ -56,7 +56,7 @@ def get_ids():
 def get_ids_batch(limit=50,before=0):
     recently_played = sp.current_user_recently_played(limit=limit,before=before)
     recently_played_data=json.loads(json.dumps(recently_played))
-    with open('recently_played.json', 'a') as outfile:
+    with open('metadata/recently_played.json', 'a') as outfile:
         json.dump(recently_played_data, outfile)
     track_ids=[]
     before_dates=[]
@@ -70,7 +70,7 @@ def get_ids_batch(limit=50,before=0):
 def get_features(track_ids):
     features = sp.audio_features(track_ids)
     features_data=json.loads(json.dumps(features))
-    with open('features.json', 'w') as outfile:
+    with open('metadata/features.json', 'w') as outfile:
         json.dump(features_data, outfile)
     print(features_data)
     return features_data
@@ -100,6 +100,6 @@ def test():
 def main():
     ids=get_ids()
     get_features(ids)
-    plot_features(open('features.json'))
+    plot_features(open('metadata/features.json'))
 main()
 # test()

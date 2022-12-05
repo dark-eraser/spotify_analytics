@@ -22,7 +22,7 @@ import json
 import matplotlib.pyplot as plt
 
 # %%
-data= json.load(open('ids.json'))
+data= json.load(open('metadata/ids.json'))
 username = data["username"]
 client_id = data["client-id"]
 client_secret = data["client-secret"]
@@ -43,8 +43,7 @@ sp= spotipy.Spotify(auth=token)
 
 def get_ids():
     recently_played = sp.current_user_recently_played(limit=50)
-    
-    with open('recently_played.json', 'w') as outfile:
+    with open('metadata/recently_played.json', 'w') as outfile:
         json.dump(recently_played, outfile)
 
     before_dates=[]
@@ -62,7 +61,7 @@ def ret_ids(recently_played):
 def get_features(track_ids):
     features = sp.audio_features(track_ids)
     features_data=json.loads(json.dumps(features))
-    with open('features.json', 'w') as outfile:
+    with open('metadata/features.json', 'w') as outfile:
         json.dump(features_data, outfile)
     print(features_data)
     return features_data
@@ -90,7 +89,7 @@ def test():
 
 # %%
 def audio_analysis():
-    with open("recently_played.json", "r") as f:
+    with open("metadata/recently_played.json", "r") as f:
         data=json.load(f)
         ids=ret_ids(data)
         print(ids)
@@ -111,3 +110,4 @@ main()
 # test()
 
 # %%
+print(sp.recommendation_genre_seeds())
