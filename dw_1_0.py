@@ -100,6 +100,10 @@ for artist in rel_artists_short:
 with open('metadata/top_tracks_per_similar_artist.json', 'w') as f:
     json.dump(top_tracks_per_artist, f)
 
+# %% [markdown]
+# Creates new playlist with 30 similar songs
+#
+
 # %%
 new_disc_weekly = []
 for i in range(0,30):
@@ -115,8 +119,8 @@ token = spotipy.util.prompt_for_user_token(username=username,
                                    client_secret=client_secret,
                                    redirect_uri=redirect_uri)
 sp_user= spotipy.Spotify(auth=token)
-# id=sp_user.user_playlist_create(user=username, name='New Discovery Weekly', public=True)
+id=sp_user.user_playlist_create(user=username, name='New Discovery Weekly', public=True)
 print(id)
-# sp_user.playlist_add_items()
+sp_user.playlist_add_items(playlist_id=id['id'], items=[track['uri'] for track in new_disc_weekly])
 
 # %%

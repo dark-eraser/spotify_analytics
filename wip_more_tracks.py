@@ -99,7 +99,7 @@ def test():
 # %%
 def main():
     ids=get_ids()
-    get_features(ids)
-    plot_features(open('metadata/features.json'))
+    # get_features(ids)
+    # plot_features(open('metadata/features.json'))
 main()
 # test()
