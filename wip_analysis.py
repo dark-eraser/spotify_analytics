@@ -17,9 +17,10 @@
 # %%
 import spotipy
 import time
-import requests
+from requests import ReadTimeout
 import json 
 import matplotlib.pyplot as plt
+import numpy as np
 
 # %%
 data= json.load(open('metadata/ids.json'))
@@ -59,15 +60,20 @@ def ret_ids(recently_played):
 
 # %%
 def get_features(track_ids):
-    features = sp.audio_features(track_ids)
+    try:
+        features = sp.audio_features(track_ids)
+    except ReadTimeout as e:
+        print("sleeping..")
+        time.sleep(5)
+        features = sp.audio_features(track_ids)
     features_data=json.loads(json.dumps(features))
     with open('metadata/features.json', 'w') as outfile:
         json.dump(features_data, outfile)
-    print(features_data)
+    # print(features_data)
     return features_data
 
 def unix_time():
-    print(int(str(time.time()).split('.')[0]))
+    # print(int(str(time.time()).split('.')[0]))
     return int(str(time.time()).split('.')[0])
 # %%
 def plot_features(features):
@@ -82,32 +88,90 @@ def plot_features(features):
         plt.savefig("plots/"+str(category)+".png")
 
 # %%
-def test():
-    recently_played = sp.current_user_recently_played(limit=1,after=1668876450)
-    print(recently_played)
-
-
-# %%
 def audio_analysis():
     with open("metadata/recently_played.json", "r") as f:
         data=json.load(f)
         ids=ret_ids(data)
-        print(ids)
+        # print(ids)
         analysis_list=[]
         for id in ids:
             aa=sp.audio_analysis(id)
             analysis_list.append(aa)
-        print(analysis_list)
+        # print(analysis_list)
 
 
 # %%
-def main():
-    ids=get_ids()
-    # get_features(ids)
-    # plot_features(open('features.json'))
-    audio_analysis()
-main()
+def average_features(features):
+    categories=["danceability", "energy", "loudness", "key","mode", "speechiness", "acousticness", "instrumentalness", "liveness", "valence", "tempo"]
+    # features=json.load(features)
+    averages={}
+    for category in categories:
+        y=[feature[category] for feature in features]
+        averages[category]=sum(y)/len(y)
+    return averages
+
+
+# %%
+def create_batch(features):
+    batches=[]
+    for i in range(0,len(features),50):
+        batches.append(features[i:i+50])
+    return batches
+
+
+# %%
+def filter_with_features(avgs):
+    with open("metadata/top_tracks_per_similar_artist.json", "r") as f:
+        tracks=json.load(f)
+    batches=create_batch(tracks)
+    tracks_with_features=[]
+    for batch in batches:
+        tracks_with_features+=get_features([track[1]for track in batch])
+    categories=["danceability", "energy", "loudness", "key","mode", "speechiness", "acousticness", "instrumentalness", "liveness", "valence", "tempo"]
+    filtered_tracks=[]
+    # count=[]
+    for track in tracks_with_features:
+        # count[track.index()]=0
+        count=0
+        # print(track.keys())
+        if track is not None:
+            for category in categories:
+                # print(str(track[category])+"                 cc         " +str(np.arange(0.9*avgs[category],1.1*avgs[category],0.001)))
+                if track[category]  >0.9*avgs[category]and track[category]<1.1*avgs[category]:
+                    count+=1
+        # break
+        if count>3:
+            try:
+                filtered_tracks.append(track)
+            except Exception as e:
+                print(e )
+                pass
+    return filtered_tracks
+
+
+# %%
+# def main():
+#     ids=get_ids()
+#     features=get_features(ids)
+#     with open("metadata/top_tracks_per_similar_artist.json", "r") as f:
+#         tracks=json.load(f)
+#         print(tracks.__len__())
+#     filtered_tracks=filter_with_features(average_features(features))
+#     print(filtered_tracks.__len__())
+#     print(filtered_tracks)
+#     # audio_analysis()
+# main()
 # test()
 
 # %%
-print(sp.recommendation_genre_seeds())
+ids=get_ids()
+features=get_features(ids)
+with open("metadata/top_tracks_per_similar_artist.json", "r") as f:
+    tracks=json.load(f)
+    print(tracks.__len__())
+filtered_tracks=filter_with_features(average_features(features))
+print(filtered_tracks.__len__())
+print(filtered_tracks)
+
+# %%
+# print(sp.recommendation_genre_seeds())

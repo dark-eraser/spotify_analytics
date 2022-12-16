@@ -56,18 +56,17 @@ for track in top_tracks['items']:
     artists.append(track['artists'][0]['id'])
 #     print(track['name'])
 artists=[sp_user.artist(artist) for artist in artists]
-print(artists)
+# print(artists)
 
 # %%
 top_artists = sp_user.current_user_top_artists(limit=50, time_range='short_term')
-top_artists
-
+# top_artists
 
 # %%
 def extract_genres(artists):
     genres=[]
     # * print top tracks and artists
-    for artist in artists['items']:
+    for artist in artists:
         genres.append(artist['genres'])
         # print(track['name'])
     genres_list=[]
@@ -96,6 +95,9 @@ def plot_features(genres):
     plt.barh( y_pos, list(genres.values()), align='center', alpha=0.5)
     plt.yticks(y_pos, list(genres.keys()))
 
+
+# %%
+# print(artists[0])
 
 # %%
 genres_dict=extract_genres(artists)
