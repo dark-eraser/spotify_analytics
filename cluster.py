@@ -15,14 +15,11 @@
 # ---
 
 # %%
-
-# %%
 import spotipy
 import time
 import requests
 import json 
 import matplotlib.pyplot as plt
-
 
 # %%
 data= json.load(open('metadata/ids.json'))
@@ -80,27 +77,73 @@ def extract_genres(artists):
     for artist in top_artists['items']:
         if artist['genres']!=[]:
             for genre in artist['genres']:
-                genres_dict[genre]+=1
+                if (genre in genres_dict):
+                    genres_dict[genre]+=1
+                else:
+                    genres_dict[genre]=1
     return genres_dict
 
-
 # %%
+
 
 # %%
 def plot_features(genres):
     from matplotlib.pyplot import figure
     import numpy as np
     y_pos = np.arange(len(genres))
-    figure(figsize=(12, 10), dpi=200)
+    figure(figsize=(12, 19), dpi=200)
     plt.barh( y_pos, list(genres.values()), align='center', alpha=0.5)
     plt.yticks(y_pos, list(genres.keys()))
-
 
 # %%
 # print(artists[0])
 
 # %%
 genres_dict=extract_genres(artists)
-plot_features(genres_dict)
+genre_dict_filtered={}
+for genre in genres_dict:
+    if (genres_dict[genre]>0):
+        genre_dict_filtered[genre]=genres_dict[genre]
+
+genre_dict_top={}
+for genre in genre_dict_filtered:
+    if (genre_dict_filtered[genre]>1):
+        genre_dict_top[genre]=genre_dict_filtered[genre]
+# plot_features(genre_dict_top)
 
 # %%
+import similarity_search as ss
+token = spotipy.util.prompt_for_user_token(username=username,
+                                   scope=scope,
+                                   client_id=client_id,
+                                   client_secret=client_secret,
+                                   redirect_uri=redirect_uri)
+# print(token)
+sp_user= spotipy.Spotify(auth=token)
+related_artists_top_tracks=ss.related_top_tracks()
+
+# %%
+def get_artist_from_track_id(track_id):
+    return sp_user.track(track_id)['artists'][0]['id']
+
+# %%
+def get_artist_from_track(track):
+    return track['artists'][0]['id']
+
+# %%
+def get_genre_from_artist_id(artist_id):
+    return sp_user.artist(artist_id)['genres']
+
+# %%
+genres=[]
+art_track_genre=[]
+for track in related_artists_top_tracks:
+    artist=get_artist_from_track_id(track[1])
+    # genres+=get_genre_from_artist_id(artist)
+    art_track_genre.append((artist,track[1],get_genre_from_artist_id(artist)))
+    # print(genres.__len__())
+
+# %%
+print(art_track_genre.__len__())
+
+
